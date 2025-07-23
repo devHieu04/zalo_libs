@@ -1,0 +1,16 @@
+# frozen_string_literal: true
+
+require_relative 'models/group_event'
+require_relative 'models/message'
+require_relative 'models/send_message'
+require_relative 'models/attachment'
+require_relative 'models/board'
+require_relative 'models/delivered_message'
+require_relative 'models/enum'
+require_relative 'models/friend_event'
+require_relative 'models/quick_message'
+require_relative 'models/reaction'
+require_relative 'models/reminder'
+require_relative 'models/seen_message'
+require_relative 'models/typing'
+require_relative 'models/undo' 
