@@ -282,6 +282,22 @@ module ZCA
       end
     end
 
+    # Giải mã response data kiểu Zalo (giống JS)
+    def self.decode_zalo_response(secret_key, data, t = 0)
+      begin
+        return nil unless data
+        decipher = OpenSSL::Cipher.new('AES-128-CBC')
+        decipher.decrypt
+        decipher.key = Base64.decode64(secret_key)
+        decipher.iv = ["00"*16].pack('H*')
+        decrypted = decipher.update(Base64.decode64(data)) + decipher.final
+        decrypted.force_encoding('UTF-8')
+        JSON.parse(decrypted)
+      rescue => e
+        t < 3 ? decode_zalo_response(secret_key, data, t+1) : (raise ZaloApiError.new("Failed to decode zalo response: #{e}"))
+      end
+    end
+
     def self.logger(ctx)
       Module.new do
         define_singleton_method(:verbose) { |*args| puts "\e[35m🚀 VERBOSE\e[0m", *args if ctx.options.logging }
@@ -498,4 +514,4 @@ module ZCA
       end
     end
   end
-end 
+end

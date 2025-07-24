@@ -25,14 +25,10 @@ module ZCA
           imei: context.imei,
           reqSrc: 40
         }
-        puts "[DEBUG] params: #{params.inspect}"
         secret_key = context.secret_key || context.secretKey
         raise ZCA::Errors::ZaloApiError.new('Missing secret_key in context') unless secret_key
         decoded_key = Base64.decode64(secret_key)
-        puts "[DEBUG] secret_key: #{secret_key.inspect}"
-        puts "[DEBUG] decoded_key.bytesize: #{decoded_key.bytesize}"
         encrypted_params = ZCA::Utils.encode_aes(secret_key, params.to_json)
-        puts "[DEBUG] encrypted_params: #{encrypted_params.inspect}"
 
         # Lấy SERVICE_URL động từ context
         service_url =
@@ -44,6 +40,20 @@ module ZCA
             'https://api-wpa.chat.zalo.me'
           end
         url = service_url + "/api/friend/profile/get?params=#{CGI.escape(encrypted_params)}"
+        # Bổ sung zpw_type vào URL (giống JS)
+        zpw_type = context.respond_to?(:api_type) && context.api_type ? context.api_type : 30
+        if url.include?("?")
+          url += "&zpw_type=#{zpw_type}"
+        else
+          url += "?zpw_type=#{zpw_type}"
+        end
+        # Bổ sung zpw_ver vào URL (giống JS)
+        zpw_ver = context.respond_to?(:api_version) && context.api_version ? context.api_version : 663
+        if url.include?("?")
+          url += "&zpw_ver=#{zpw_ver}"
+        else
+          url += "?zpw_ver=#{zpw_ver}"
+        end
         headers = {
           'accept' => 'application/json, text/plain, */*',
           'content-type' => 'application/x-www-form-urlencoded',
@@ -52,8 +62,7 @@ module ZCA
         # Debug cookie header
         if context.respond_to?(:cookie) && context.cookie
           if context.cookie.is_a?(HTTP::CookieJar)
-            cookies = context.cookie.cookies(URI(url)).map { |c| "#{c.name}=#{c.value}" }.join('; ')
-            puts "[DEBUG] Cookie header: #{cookies}"
+            context.cookie.cookies(URI(url)).map { |c| "#{c.name}=#{c.value}" }.join('; ')
           elsif context.cookie.is_a?(String)
             puts "[DEBUG] Cookie header: #{context.cookie}"
           elsif context.cookie.respond_to?(:to_cookie_string)
@@ -61,11 +70,18 @@ module ZCA
           end
         end
         resp = Utils.request(context, url, { method: :get, headers: headers }, :json)
-        if resp['error'] && resp['error']['code'] != 216
-          raise ZCA::Errors::ZaloApiError.new(resp['error']['message'], resp['error']['code'])
+        parsed = JSON.parse(resp)
+        if parsed['error_code'] != 0
+          raise ZCA::Errors::ZaloApiError.new(parsed['error_message'], parsed['error_code'])
         end
-        resp['data']
+        # Giải mã data nếu có (giống JS)
+        if parsed['data']
+          decoded = ZCA::Utils.decode_zalo_response(secret_key, parsed['data'])
+          return decoded['data'] if decoded.is_a?(Hash) && decoded['data']
+          return decoded
+        end
+        nil
       end
     end
   end
-end 
+end
