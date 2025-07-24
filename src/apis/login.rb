@@ -34,6 +34,7 @@ module ZCA
           computer_name: 'Web',
           signkey: encrypted_params[:params][:signkey],
         })
+        binding.pry
         resp = request(url, {}, response_type: :json)
         raise ZCA::Errors::ZaloApiError.new("Failed to fetch server info: #{resp['error_message']}") if resp['data'].nil?
         resp['data']
@@ -56,6 +57,7 @@ module ZCA
           params.merge!(encrypted_data[:encrypted_params])
           params[:params] = encrypted_data[:encrypted_data]
         end
+        binding.pry
         params[:type] = context.API_TYPE
         params[:client_version] = context.API_VERSION
         params[:signkey] = if type == 'getserverinfo'

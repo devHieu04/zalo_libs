@@ -424,7 +424,7 @@ module ZCA
         end
       end
       # Content-Type cho POST nếu chưa có
-      if (options[:method]&.to_s&.downcase == 'post' || options[:body]) && !headers['Content-Type']
+      if (options[:method]&.to_s&.downcase == 'post' || options[:body]) && !headers['Content-Type'] && !options[:multipart]
         headers['Content-Type'] = 'application/x-www-form-urlencoded'
       end
       method = (options[:method] || :get).to_sym

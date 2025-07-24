@@ -3,9 +3,9 @@ require_relative 'src/apis/find_user'
 require_relative 'src/apis/login'
 
 # 1. Tạo context với cookie, imei, user_agent
-imei = "62a8c7cd-d04b-438c-bcf1-b40f6b68eeab-5b2ba492da1bf8b88f5f71b161575820"
+imei = "9b96b0e4-7336-4428-be95-5e21584b944b-ce69b851c4edc7eebfb3998aa94a7157"
 user_agent = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36"
-cookie_path = "/Users/nguyenduyhieu/Documents/VANPHUKHANH/zalo_libs/chat.zalo.me_23-07-2025 (1).json" # hoặc file cookie bạn đã lưu
+cookie_path = "/Users/hieu.nguyen/Documents/personal/zalo_libs/chat.zalo.me_23-07-2025.json" # hoặc file cookie bạn đã lưu
 
 context = ZCA::Context.create_context(imei: imei)
 json = File.read(cookie_path)
