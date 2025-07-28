@@ -36,12 +36,14 @@ result = api.login(encrypt_params: false)
 
 
 # === BỔ SUNG: Gọi get_server_info để lấy thông tin chuẩn từ server ===
-server_info = api.get_server_info(encrypt_params: false)
+server_info = api.get_server_info(encrypt_params: true)
 puts "Server info: #{server_info.inspect}"
 if server_info.is_a?(Hash)
   context.API_TYPE ẽ= server_info['api_type'] if server_info['api_type']
   context.API_VERSION = server_info['api_version'] if server_info['api_version']
   context.zpw_service_map = server_info['zpw_service_map_v3'] if server_info['zpw_service_map_v3']
+  puts "server_info: #{server_info.inspect}"
+  context.settings = server_info['settings'] if server_info['settings']
 end
 # === END BỔ SUNG ===
 

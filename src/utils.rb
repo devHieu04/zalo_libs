@@ -162,6 +162,7 @@ module ZCA
         raise ZaloApiError.new("createZcid: missing params") unless type && imei && first_launch_time
         msg = "#{type},#{imei},#{first_launch_time}"
         @zcid = ParamsEncryptor.encode_aes('3FC4F0D2AB50057BCE0D90D9187A22B1', msg, :hex, true)
+        @zcid
       end
 
       def create_encrypt_key(e = 0)
@@ -286,11 +287,21 @@ module ZCA
     def self.decode_zalo_response(secret_key, data, t = 0)
       begin
         return nil unless data
-        decipher = OpenSSL::Cipher.new('AES-128-CBC')
-        decipher.decrypt
-        decipher.key = Base64.decode64(secret_key)
-        decipher.iv = ["00"*16].pack('H*')
-        decrypted = decipher.update(Base64.decode64(data)) + decipher.final
+        decoded_key = Base64.decode64(secret_key)
+        cipher =
+          case decoded_key.bytesize
+          when 16
+            OpenSSL::Cipher.new('AES-128-CBC')
+          when 32
+            OpenSSL::Cipher.new('AES-256-CBC')
+          else
+            raise ZaloApiError.new("Invalid key size: #{decoded_key.bytesize} bytes")
+          end
+        
+        cipher.decrypt
+        cipher.key = decoded_key
+        cipher.iv = ["00"*16].pack('H*')
+        decrypted = cipher.update(Base64.decode64(data)) + cipher.final
         decrypted.force_encoding('UTF-8')
         JSON.parse(decrypted)
       rescue => e
